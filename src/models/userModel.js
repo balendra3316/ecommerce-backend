@@ -29,31 +29,7 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    subscription: {
-        status: {
-            type: String,
-            enum: ['none', 'active', 'expired'],
-            default: 'none',
-        },
-        endDate: Date,
-        razorpayPaymentId: String,
-    },
-    // Progress Tracking
-    currentStreak: {
-        type: Number,
-        default: 0,
-    },
-    longestStreak: {
-        type: Number,
-        default: 0,
-    },
-    lastPracticeDate: {
-        type: Date,
-    },
-    badges: [{
-        name: String,
-        earnedOn: Date,
-    }],
+   
 }, {
     timestamps: true,
 });
