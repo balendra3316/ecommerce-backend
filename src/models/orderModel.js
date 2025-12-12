@@ -20,7 +20,7 @@ const orderSchema = new mongoose.Schema({
             },
             // Specific options selected for the item
             size: { type: String, required: true },
-            colour: { type: String, required: false },
+            
         },
     ],
     // --- Order Status and Payment Details ---

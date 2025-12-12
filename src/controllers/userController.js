@@ -85,15 +85,30 @@ export const getCart = async (req, res, next) => {
     }
 };
 
-// @desc    Add or update an item in the cart
 // @route   POST /api/users/cart
 export const updateCart = async (req, res, next) => {
-    // Ensure all required fields are used for item identification
-    const { productId, quantity, size, colour } = req.body; 
+    // Extract payload from the request body
+    const { quantity, size } = req.body;
+    let { productId } = req.body; 
+
+    // CRITICAL FIX 1: Ensure productId is always a string ID, even if frontend sends the full object
+    if (typeof productId === 'object' && productId !== null && productId._id) {
+        productId = productId._id;
+    }
+    
+    // Convert to string immediately for safety in comparisons later
+    const productIdStr = String(productId);
+
+
+    // --- DEBUG LOGS START ---
+    // console.log('--- Incoming Cart Update Request ---');
+    // console.log('Processed Payload:', { productId: productIdStr, quantity, size });
+    // console.log('User ID:', req.user.id);
+    // --- DEBUG LOGS END ---
 
     try {
         let cart = await Cart.findOne({ user: req.user.id });
-        const product = await Product.findById(productId);
+        const product = await Product.findById(productIdStr); // Use the fixed string ID
 
         if (!product) {
             return next(new ErrorResponse('Product not found', 404));
@@ -103,32 +118,43 @@ export const updateCart = async (req, res, next) => {
             cart = await Cart.create({ user: req.user.id, items: [] });
         }
         
-        // CRITICAL FIX: Find item based on product ID, size, AND colour
+        // Find item based on Product ID and Size
         const itemIndex = cart.items.findIndex(
-            (item) => 
-            item.product.toString() === productId && 
-            item.size === size && 
-            item.colour === colour // Assuming colour exists and is required for uniqueness
+            (item) => {
+                // Check if stored product ID (which is an ObjectId) matches the requested string ID
+                const isProductMatch = item.product.toString() === productIdStr;
+                const isSizeMatch = item.size === size;
+                
+                // The Product Match was failing because the request payload contained an object.
+                // The fix above (CRITICAL FIX 1) should now ensure this is true.
+                //console.log(`Checking stored item ${item.product.toString()}: Stored Size="${item.size}", Requested Size="${size}", Product Match=${isProductMatch}, Size Match=${isSizeMatch}`);
+                
+                return isProductMatch && isSizeMatch;
+            }
         );
         
+        // --- DEBUG LOGS START ---
+       // console.log('Final itemIndex found:', itemIndex);
+        // --- DEBUG LOGS END ---
+
+
         if (itemIndex > -1) {
-            // Item exists, update quantity
+            // Item exists (Fix works!)
             cart.items[itemIndex].quantity = quantity;
 
-            // Remove item if quantity is 0 or less
+            // Removal logic: if quantity is 0 or less, remove the item
             if (cart.items[itemIndex].quantity <= 0) {
                  cart.items.splice(itemIndex, 1);
             }
         } else if (quantity > 0) {
             // Item does not exist, add new item
             cart.items.push({
-                product: productId,
+                product: productIdStr, // Use the string ID for consistency
                 name: product.name,
                 image: product.image,
                 price: product.price,
                 quantity,
                 size,
-                colour
             });
         }
 
@@ -138,15 +164,12 @@ export const updateCart = async (req, res, next) => {
         await cart.save();
         
         // Re-populate for the response (Frontend needs this)
-        await cart.populate({
-            path: 'items.product', 
-            select: 'name image price' // Select only necessary fields
-        });
-
+        await cart.populate('items.product');
 
         res.status(200).json({ success: true, data: cart });
 
     } catch (err) {
+        console.error("Cart Update Error:", err);
         next(err);
     }
 };

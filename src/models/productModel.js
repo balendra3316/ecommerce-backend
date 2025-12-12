@@ -36,10 +36,7 @@ const productSchema = new mongoose.Schema({
         default: [],
         required: [true, 'Please specify available sizes']
     },
-    colour: {
-        type: String, // Can be text (e.g., "Red", "Navy Blue") or hex code
-        default: 'None'
-    },
+    
     image: {
         // In a real app, this would be an array of image URLs from a service like AWS S3
         type: String, 
