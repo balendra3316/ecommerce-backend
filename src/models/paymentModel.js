@@ -13,7 +13,7 @@ const paymentSchema = new mongoose.Schema({
     },
     razorpayPaymentId: {
         type: String,
-        default: null, // Will be filled upon payment success
+        default: null, 
         unique: true,
         sparse: true, // Allows multiple documents with null value
     },
@@ -31,7 +31,7 @@ const paymentSchema = new mongoose.Schema({
         default: 'pending',
     },
     orderData: {
-        type: Object, // Stores a snapshot of the cart/address/items before payment
+        type: Object, 
         required: true,
     },
     orderRef: {

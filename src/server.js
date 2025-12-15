@@ -5,6 +5,7 @@ import app from './app.js';
 
 import Product from './models/productModel.js'; 
 import User from './models/userModel.js';
+import Admin from './models/adminModel.js';
 
 dotenv.config();
 
@@ -28,6 +29,43 @@ connectDB()
     console.error('Failed to connect to DB', err);
     process.exit(1);
   });
+
+
+
+const seedAdmin = async () => {
+    try {
+        // 1. Connect to MongoDB
+        
+
+        // 2. Define Admin Credentials
+        const adminCredentials = {
+            email: 'ytsameer@gmail.com',
+            password: 'Ayyomarchipoya@1', // This will be hashed by the Admin model pre-save hook
+            role: 'admin'
+        };
+
+        // 3. Check if Admin already exists
+        const adminExists = await Admin.findOne({ email: adminCredentials.email });
+
+        if (adminExists) {
+            console.log('⚠️ Admin user already exists.');
+            process.exit();
+        }
+
+        // 4. Create new Admin
+        const admin = await Admin.create(adminCredentials);
+
+        console.log(`✅ Admin created successfully: ${admin.email}`);
+        process.exit();
+
+    } catch (error) {
+        console.error(`❌ Error: ${error.message}`);
+        process.exit(1);
+    }
+};
+
+//seedAdmin();
+
 
 
 

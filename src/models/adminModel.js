@@ -1,14 +1,8 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-//import crypto from 'crypto';
 
-const userSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'Please add a name'],
-        maxlength: [50, 'Name cannot be more than 50 characters']
-    },
+const adminSchema = new mongoose.Schema({
     email: {
         type: String,
         required: [true, 'Please add an email'],
@@ -17,25 +11,23 @@ const userSchema = new mongoose.Schema({
             /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
             'Please add a valid email',
         ],
-        lowercase: true,
     },
     password: {
         type: String,
         required: [true, 'Please add a password'],
         minlength: 6,
-        select: false, 
+        select: false,
     },
-    isVerified: {
-        type: Boolean,
-        default: false,
+    role: {
+        type: String,
+        default: 'admin',
     },
-   
 }, {
     timestamps: true,
 });
 
-// Encrypt password using bcrypt
-userSchema.pre('save', async function (next) {
+// Encrypt password
+adminSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         next();
     }
@@ -43,17 +35,17 @@ userSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Sign JWT and return
-userSchema.methods.getSignedJwtToken = function () {
-    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+// Sign JWT
+adminSchema.methods.getSignedJwtToken = function () {
+    return jwt.sign({ id: this._id, role: 'admin' }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRES_IN,
     });
 };
 
-// Match user entered password to hashed password in database
-userSchema.methods.matchPassword = async function (enteredPassword) {
+// Match password
+adminSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model('User', userSchema);
-export default User;
+const Admin = mongoose.model('Admin', adminSchema);
+export default Admin;
