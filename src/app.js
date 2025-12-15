@@ -6,7 +6,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import compression from 'compression';
 import  {apiLimiter} from './middlewares/rateLimiter.js';
-import { errorHandler } from './middlewares/errorHandler.js';
+//import { errorHandler } from './middlewares/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import productRoutes from './routes/productRoutes.js'; 
 import orderRoutes from './routes/orderRoutes.js';
@@ -35,7 +35,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(errorHandler);
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes); 
@@ -44,7 +44,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 
 
-
+//app.use(errorHandler);
 // Basic test route for quick verification
 app.get('/', (req, res) => {
   res.send('dashboard API is running... tytyy');

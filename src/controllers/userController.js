@@ -20,6 +20,21 @@ export const getAddresses = async (req, res, next) => {
 // @route   POST /api/users/addresses
 export const addAddress = async (req, res, next) => {
     try {
+        
+        const addressCount = await Address.countDocuments({ user: req.user.id });
+        const MAX_ADDRESSES = 5;
+
+        if (addressCount >= MAX_ADDRESSES) {
+           // return next(new ErrorResponse(`Maximum address limit (${MAX_ADDRESSES}) reached. Please delete an existing address to add a new one.`, 400));
+       // res.status(400).json({ success: false, message: `Maximum address limit (${MAX_ADDRESSES}) reached. Please delete an existing address to add a new one.` });
+        return res.status(400).json({ 
+                success: false, 
+                message: `Maximum address limit (${MAX_ADDRESSES}) reached. Please delete an existing address to add a new one.` 
+            });
+    }
+      
+    
+        
         const address = await Address.create({ ...req.body, user: req.user.id });
         res.status(201).json({ success: true, data: address });
     } catch (err) {
